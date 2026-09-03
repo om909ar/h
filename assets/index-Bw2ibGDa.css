@@ -2,15 +2,3 @@
 
 @supports (padding-top: env(safe-area-inset-top)){@media (max-width:600px){.topbar{height:calc(clamp(54px,8svh,72px) + env(safe-area-inset-top))!important;min-height:calc(clamp(54px,8svh,72px) + env(safe-area-inset-top));flex-basis:calc(clamp(54px,8svh,72px) + env(safe-area-inset-top))!important;padding-top:env(safe-area-inset-top)!important;box-sizing:border-box}}}
 
-@media (max-width: 600px) {
-  .bottom-nav {
-    padding-top: 2px !important;
-    padding-bottom: calc(2px + env(safe-area-inset-bottom)) !important;
-  }
-
-  .bottom-nav button {
-    min-height: 38px !important;
-    padding: 2px !important;
-    gap: 2px !important;
-  }
-}
