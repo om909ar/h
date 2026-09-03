@@ -5,14 +5,15 @@
 
 @media (max-width: 600px) {
   .bottom-nav {
-    padding-top: 9px !important;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    height: 92px !important;
+    min-height: 92px !important;
+    padding-top: 8px !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
   }
 
   .bottom-nav button {
     min-height: 44px !important;
     padding: 6px !important;
     gap: 4px !important;
-    font-size: 10px !important;
   }
 }
