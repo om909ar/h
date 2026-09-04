@@ -47,6 +47,12 @@
   </head>
 
   <body>
+    <script>
+if (new URLSearchParams(location.search).get("owner") === "1") {
+  location.replace("./owner-login.html");
+}
+</script>
+    
     <div id="root"></div>
   </body>
 </html>
