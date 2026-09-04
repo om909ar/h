@@ -12,8 +12,6 @@
 
   <title>لوحة مالك حصنك</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -31,7 +29,7 @@
     .container {
       width: 100%;
       max-width: 700px;
-      margin: 30px auto;
+      margin: 35px auto;
     }
 
     .card {
@@ -87,7 +85,6 @@
 
     button:disabled {
       opacity: .6;
-      cursor: default;
     }
 
     .login-button {
@@ -157,21 +154,14 @@
       flex-wrap: wrap;
     }
 
-    .empty {
+    .empty,
+    .loading {
       text-align: center;
       color: #aeb8b4;
       padding: 35px 10px;
     }
 
-    .loading {
-      text-align: center;
-      color: #c8cfcc;
-      padding: 30px;
-    }
-
     .count {
-      display: inline-block;
-      margin-top: 5px;
       color: #d5b86a;
       font-size: 14px;
     }
@@ -182,10 +172,7 @@
 
 <div class="container">
 
-  <!-- =========================
-       LOGIN
-       ========================= -->
-
+  <!-- تسجيل الدخول -->
   <div id="loginBox" class="card">
 
     <h1>لوحة مالك حصنك</h1>
@@ -235,10 +222,7 @@
   </div>
 
 
-  <!-- =========================
-       DASHBOARD
-       ========================= -->
-
+  <!-- لوحة المالك -->
   <div id="dashboard" class="hidden">
 
     <div class="top">
@@ -271,571 +255,293 @@
 
 <script>
 
-  /* =========================
-     Supabase
-     ========================= */
+const SUPABASE_URL =
+  "https://ggnpqhozioxzctrkmbgd.supabase.co";
 
-  const SUPABASE_URL =
-    "https://ggnpqhozioxzctrkmbgd.supabase.co";
+const SUPABASE_KEY =
+  "sb_publishable_FEWSIWV7TDvQYfZT7rTzwg_oJuQ8t7s";
 
-  const SUPABASE_KEY =
-    "sb_publishable_FEWSIWV7TDvQYfZT7rTzwg_oJuQ8t7s";
 
+const loginBox =
+  document.getElementById("loginBox");
 
-  const supabase =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: false
-        }
-      }
-    );
+const dashboard =
+  document.getElementById("dashboard");
 
+const loginForm =
+  document.getElementById("loginForm");
 
-  /* =========================
-     Elements
-     ========================= */
+const loginButton =
+  document.getElementById("loginButton");
 
-  const loginBox =
-    document.getElementById("loginBox");
+const message =
+  document.getElementById("message");
 
-  const dashboard =
-    document.getElementById("dashboard");
+const suggestionsBox =
+  document.getElementById("suggestions");
 
-  const loginForm =
-    document.getElementById("loginForm");
+const count =
+  document.getElementById("count");
 
-  const loginButton =
-    document.getElementById("loginButton");
+const logoutButton =
+  document.getElementById("logoutButton");
 
-  const message =
-    document.getElementById("message");
 
-  const suggestionsBox =
-    document.getElementById("suggestions");
+/* =================================
+   تسجيل الدخول مباشرة مع Supabase
+   ================================= */
 
-  const count =
-    document.getElementById("count");
+loginForm.addEventListener(
+  "submit",
+  async function(event) {
 
-  const logoutButton =
-    document.getElementById("logoutButton");
+    event.preventDefault();
 
+    loginButton.disabled = true;
 
-  /* =========================
-     LOGIN
-     ========================= */
+    loginButton.textContent =
+      "جارٍ تسجيل الدخول...";
 
-  loginForm.addEventListener(
-    "submit",
-    async function (event) {
+    message.textContent = "";
 
-      event.preventDefault();
 
-      loginButton.disabled = true;
+    const email =
+      document
+        .getElementById("email")
+        .value
+        .trim();
 
-      loginButton.textContent =
-        "جارٍ تسجيل الدخول...";
+    const password =
+      document
+        .getElementById("password")
+        .value;
 
-      message.textContent = "";
 
-
-      const email =
-        document
-          .getElementById("email")
-          .value
-          .trim();
-
-      const password =
-        document
-          .getElementById("password")
-          .value;
-
-
-      try {
-
-        const result =
-          await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-          });
-
-
-        if (result.error) {
-
-          console.error(
-            "LOGIN ERROR:",
-            result.error
-          );
-
-          message.textContent =
-  "الخطأ: " + result.error.message;
-  
-  
-          loginButton.disabled = false;
-
-          loginButton.textContent =
-            "تسجيل الدخول";
-
-          return;
-        }
-
-
-        const session =
-          result.data?.session;
-
-
-        if (!session) {
-
-          message.textContent =
-            "تم تسجيل الدخول ولكن لم يتم إنشاء الجلسة.";
-
-          loginButton.disabled = false;
-
-          loginButton.textContent =
-            "تسجيل الدخول";
-
-          return;
-        }
-
-
-        /*
-         * تم الدخول بنجاح.
-         * نعرض لوحة المالك مباشرة
-         * بدون إعادة تحميل الصفحة.
-         */
-
-        await showDashboard(
-          session
-        );
-
-      } catch (error) {
-
-        console.error(
-          "LOGIN EXCEPTION:",
-          error
-        );
-
-        message.textContent =
-          "حدث خطأ أثناء تسجيل الدخول.";
-
-        loginButton.disabled = false;
-
-        loginButton.textContent =
-          "تسجيل الدخول";
-      }
-
-    }
-  );
-
-
-  /* =========================
-     SHOW DASHBOARD
-     ========================= */
-
-  async function showDashboard(session) {
-
-    loginBox.classList.add("hidden");
-
-    dashboard.classList.remove("hidden");
-
-    suggestionsBox.innerHTML =
-      '<div class="card loading">جارٍ تحميل الاقتراحات...</div>';
-
-    count.textContent = "";
-
-
-    /*
-     * نستخدم الـ access token للجلسة
-     * مباشرة في طلب Supabase.
-     */
-
-    const response =
-      await fetch(
-        SUPABASE_URL +
-        "/rest/v1/suggestions" +
-        "?select=id,message,created_at,is_read" +
-        "&order=created_at.desc",
-        {
-          method: "GET",
-
-          headers: {
-            apikey:
-              SUPABASE_KEY,
-
-            Authorization:
-              "Bearer " +
-              session.access_token
-          }
-        }
-      );
-
-
-    if (!response.ok) {
-
-      const errorText =
-        await response.text();
-
-      console.error(
-        "SUGGESTIONS ERROR:",
-        errorText
-      );
-
-      suggestionsBox.innerHTML =
-        `
-        <div class="card">
-          تعذر تحميل الاقتراحات.
-          <br><br>
-          تأكد من صلاحيات حساب المالك.
-        </div>
-        `;
-
-      return;
-    }
-
-
-    const data =
-      await response.json();
-
-
-    count.textContent =
-      `عدد الاقتراحات: ${data.length}`;
-
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
-      suggestionsBox.innerHTML =
-        '<div class="card empty">لا توجد اقتراحات حتى الآن.</div>';
-
-      return;
-    }
-
-
-    suggestionsBox.innerHTML =
-      data
-        .map(
-          function (item) {
-
-            const date =
-              new Date(
-                item.created_at
-              ).toLocaleString(
-                "ar-SA",
-                {
-                  dateStyle: "medium",
-                  timeStyle: "short"
-                }
-              );
-
-
-            return `
-              <div
-                class="suggestion ${
-                  item.is_read
-                    ? ""
-                    : "unread"
-                }"
-              >
-
-                <div class="suggestion-message">
-                  ${escapeHtml(
-                    item.message
-                  )}
-                </div>
-
-                <div class="suggestion-date">
-                  ${date}
-                </div>
-
-                <div class="actions">
-
-                  ${
-                    item.is_read
-                      ? ""
-                      : `
-                        <button
-                          onclick="markRead('${item.id}')"
-                        >
-                          تحديد كمقروء
-                        </button>
-                      `
-                  }
-
-                  <button
-                    class="danger"
-                    onclick="deleteSuggestion('${item.id}')"
-                  >
-                    حذف
-                  </button>
-
-                </div>
-
-              </div>
-            `;
-          }
-        )
-        .join("");
-  }
-
-
-  /* =========================
-     MARK AS READ
-     ========================= */
-
-  window.markRead =
-    async function (id) {
-
-      const {
-        data
-      } =
-        await supabase.auth.getSession();
-
-
-      const session =
-        data?.session;
-
-
-      if (!session) {
-
-        alert(
-          "انتهت جلسة الدخول. سجّل الدخول مرة أخرى."
-        );
-
-        showLogin();
-
-        return;
-      }
-
+    try {
 
       const response =
         await fetch(
           SUPABASE_URL +
-          "/rest/v1/suggestions?id=eq." +
-          encodeURIComponent(id),
+          "/auth/v1/token?grant_type=password",
           {
-            method: "PATCH",
+            method: "POST",
 
             headers: {
               apikey:
                 SUPABASE_KEY,
 
-              Authorization:
-                "Bearer " +
-                session.access_token,
-
               "Content-Type":
-                "application/json",
-
-              Prefer:
-                "return=minimal"
+                "application/json"
             },
 
             body: JSON.stringify({
-              is_read: true
+              email: email,
+              password: password
             })
           }
         );
 
 
-      if (!response.ok) {
-
-        alert(
-          "تعذر تحديد الاقتراح كمقروء."
-        );
-
-        return;
-      }
-
-
-      await showDashboard(
-        session
-      );
-    };
-
-
-  /* =========================
-     DELETE
-     ========================= */
-
-  window.deleteSuggestion =
-    async function (id) {
-
-      const confirmed =
-        confirm(
-          "هل تريد حذف هذا الاقتراح؟"
-        );
-
-
-      if (!confirmed) {
-        return;
-      }
-
-
-      const {
-        data
-      } =
-        await supabase.auth.getSession();
-
-
-      const session =
-        data?.session;
-
-
-      if (!session) {
-
-        alert(
-          "انتهت جلسة الدخول."
-        );
-
-        showLogin();
-
-        return;
-      }
-
-
-      const response =
-        await fetch(
-          SUPABASE_URL +
-          "/rest/v1/suggestions?id=eq." +
-          encodeURIComponent(id),
-          {
-            method: "DELETE",
-
-            headers: {
-              apikey:
-                SUPABASE_KEY,
-
-              Authorization:
-                "Bearer " +
-                session.access_token
-            }
-          }
-        );
+      const result =
+        await response.json();
 
 
       if (!response.ok) {
 
-        alert(
-          "تعذر حذف الاقتراح."
-        );
+        message.textContent =
+          "الخطأ: " +
+          (
+            result.error_description ||
+            result.msg ||
+            result.message ||
+            "تعذر تسجيل الدخول"
+          );
+
+        loginButton.disabled = false;
+
+        loginButton.textContent =
+          "تسجيل الدخول";
 
         return;
       }
 
 
-      await showDashboard(
-        session
+      if (!result.access_token) {
+
+        message.textContent =
+          "تم الدخول ولكن لم يتم إنشاء الجلسة.";
+
+        loginButton.disabled = false;
+
+        loginButton.textContent =
+          "تسجيل الدخول";
+
+        return;
+      }
+
+
+      /*
+       * حفظ جلسة المالك
+       */
+
+      localStorage.setItem(
+        "hosnek_owner_access_token",
+        result.access_token
       );
-    };
+
+      if (result.refresh_token) {
+
+        localStorage.setItem(
+          "hosnek_owner_refresh_token",
+          result.refresh_token
+        );
+
+      }
 
 
-  /* =========================
-     LOGOUT
-     ========================= */
+      /*
+       * تحميل لوحة المالك
+       */
 
-  logoutButton.addEventListener(
-    "click",
-    async function () {
+      await loadDashboard(
+        result.access_token
+      );
 
-      await supabase.auth.signOut();
+    } catch(error) {
 
-      showLogin();
+      console.error(error);
+
+      message.textContent =
+        "حدث خطأ في الاتصال بسيرفر Supabase.";
+
+      loginButton.disabled = false;
+
+      loginButton.textContent =
+        "تسجيل الدخول";
 
     }
+
+  }
+);
+
+
+/* =================================
+   تحميل الاقتراحات
+   ================================= */
+
+async function loadDashboard(
+  accessToken
+) {
+
+  loginBox.classList.add(
+    "hidden"
   );
 
+  dashboard.classList.remove(
+    "hidden"
+  );
 
-  /* =========================
-     SHOW LOGIN
-     ========================= */
-
-  function showLogin() {
-
-    dashboard.classList.add(
-      "hidden"
-    );
-
-    loginBox.classList.remove(
-      "hidden"
-    );
-
-    loginButton.disabled =
-      false;
-
-    loginButton.textContent =
-      "تسجيل الدخول";
-
-    message.textContent = "";
-
-    document
-      .getElementById("password")
-      .value = "";
-
-  }
+  suggestionsBox.innerHTML =
+    '<div class="card loading">جارٍ تحميل الاقتراحات...</div>';
 
 
-  /* =========================
-     SECURITY
-     ========================= */
+  const response =
+    await fetch(
+      SUPABASE_URL +
+      "/rest/v1/suggestions" +
+      "?select=id,message,created_at,is_read" +
+      "&order=created_at.desc",
+      {
+        method: "GET",
 
-  function escapeHtml(text) {
+        headers: {
+          apikey:
+            SUPABASE_KEY,
 
-    const div =
-      document.createElement(
-        "div"
-      );
-
-    div.textContent =
-      text;
-
-    return div.innerHTML;
-  }
-
-
-  /* =========================
-     CHECK EXISTING SESSION
-     ========================= */
-
-  (async function () {
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.getSession();
-
-
-      if (
-        !error &&
-        data?.session
-      ) {
-
-        await showDashboard(
-          data.session
-        );
-
+          Authorization:
+            "Bearer " +
+            accessToken
+        }
       }
+    );
 
-    } catch (error) {
 
-      console.error(
-        "SESSION ERROR:",
-        error
-      );
+  if (!response.ok) {
 
-    }
+    const error =
+      await response.text();
 
-  })();
+    console.error(
+      "Suggestions error:",
+      error
+    );
 
-</script>
+    suggestionsBox.innerHTML =
+      `
+      <div class="card">
+        <div>
+          تعذر تحميل الاقتراحات.
+        </div>
+        <br>
+        <div style="font-size:13px;color:#999;">
+          تأكد من صلاحيات حساب المالك.
+        </div>
+      </div>
+      `;
 
-</body>
-</html>
+    return;
+  }
+
+
+  const data =
+    await response.json();
+
+
+  count.textContent =
+    "عدد الاقتراحات: " +
+    data.length;
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    suggestionsBox.innerHTML =
+      '<div class="card empty">لا توجد اقتراحات حتى الآن.</div>';
+
+    return;
+  }
+
+
+  suggestionsBox.innerHTML =
+    data
+      .map(
+        function(item) {
+
+          const date =
+            new Date(
+              item.created_at
+            ).toLocaleString(
+              "ar-SA",
+              {
+                dateStyle:
+                  "medium",
+
+                timeStyle:
+                  "short"
+              }
+            );
+
+
+          return `
+            <div
+              class="suggestion ${
+                item.is_read
+                  ? ""
+                  : "unread"
+              }"
+            >
+
+              <div class="suggestion-message">
+                ${escapeHtml(
