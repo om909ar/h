@@ -183,34 +183,77 @@
       );
 
       if (!response.ok) {
-        const error =
-          await response.text();
+  const error =
+    await response.text();
 
-        console.error(
-          "Supabase suggestion error:",
-          error
-        );
+  console.error(
+    "Supabase suggestion error:",
+    error
+  );
 
-        return new Response(
-          JSON.stringify({
-            error: {
-              message:
-                "تعذر حفظ الاقتراح."
-            }
-          }),
-          {
-            status: 400,
-            headers: {
-              "Content-Type":
-                "application/json"
-            }
-          }
-        );
+  return new Response(
+    JSON.stringify({
+      error: {
+        message:
+          "تعذر حفظ الاقتراح."
       }
+    }),
+    {
+      status: 400,
+      headers: {
+        "Content-Type":
+          "application/json"
+      }
+    }
+  );
+}
 
-      return trpc({
-        success: true
-      });
+/* رسالة نجاح واضحة للزائر */
+setTimeout(() => {
+  const oldToast =
+    document.getElementById(
+      "hosnek-success-toast"
+    );
+
+  if (oldToast) oldToast.remove();
+
+  const toast =
+    document.createElement("div");
+
+  toast.id =
+    "hosnek-success-toast";
+
+  toast.textContent =
+    "وصل اقتراحك، شكرًا لك ❤️";
+
+  toast.style.cssText = `
+    position: fixed;
+    z-index: 999999;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #d6b36a;
+    color: #081a15;
+    padding: 13px 22px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    white-space: nowrap;
+    direction: rtl;
+  `;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+
+}, 100);
+
+return trpc({
+  success: true
+});
     }
 
     /* =========================
