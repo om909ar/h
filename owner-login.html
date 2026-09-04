@@ -372,9 +372,9 @@
           );
 
           message.textContent =
-            result.error.message ||
-            "تعذر تسجيل الدخول.";
-
+  "الخطأ: " + result.error.message;
+  
+  
           loginButton.disabled = false;
 
           loginButton.textContent =
