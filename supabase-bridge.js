@@ -224,7 +224,7 @@ setTimeout(() => {
     "hosnek-success-toast";
 
   toast.textContent =
-    "وصل اقتراحك، شكرًا لك ❤️";
+    "شكراً لك ❤️";
 
   toast.style.cssText = `
     position: fixed;
@@ -247,7 +247,7 @@ setTimeout(() => {
 
   setTimeout(() => {
     toast.remove();
-  }, 3000);
+  }, 5000);
 
 }, 100);
 
