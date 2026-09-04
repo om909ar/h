@@ -319,20 +319,6 @@
       session.user;
 
 
-    if (
-      user?.app_metadata?.role !==
-      "admin"
-    ) {
-
-      await supabase.auth.signOut();
-
-      showLogin();
-
-      message.textContent =
-        "هذا الحساب غير مصرح له بالدخول.";
-
-      return;
-    }
 
 
     const {
