@@ -2,17 +2,398 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover"
+    />
+
     <meta name="theme-color" content="#081a15" />
-    <meta name="description" content="حصنك — وردك اليومي من الأذكار والأدعية بهدوء." />
+    <meta
+      name="description"
+      content="حصنك — وردك اليومي من الأذكار والأدعية بهدوء."
+    />
+
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="حصنك" />
+
     <link rel="manifest" href="./manifest.json" />
+
     <title>حصنك | وردك اليومي</title>
-    <script type="module" crossorigin src="./assets/index-3-UNteoE.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Bw2ibGDa.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+      window.__HOSNEK_SUPABASE_URL__ =
+        "https://ggnpqhozioxzctrkmbgd.supabase.co";
+
+      window.__HOSNEK_SUPABASE_KEY__ =
+        "sb_publishable_FEWSIWV7TDvQYfZT7rTzwg_oJuQ8t7s";
+
+      (function () {
+        if (!window.supabase) return;
+
+        const supabaseClient = window.supabase.createClient(
+          window.__HOSNEK_SUPABASE_URL__,
+          window.__HOSNEK_SUPABASE_KEY__
+        );
+
+        window.__HOSNEK_SB__ = supabaseClient;
+
+        /*
+         * فتح صفحة المالك
+         * ?owner=1 يتحول داخليًا إلى /owner/suggestions
+         */
+        if (
+          new URLSearchParams(window.location.search).get("owner") === "1"
+        ) {
+          const ownerPath = new URL(
+            "owner/suggestions",
+            window.location.href
+          ).pathname;
+
+          history.replaceState({}, "", ownerPath);
+        }
+
+        const originalFetch = window.fetch.bind(window);
+
+        function trpcResponse(data) {
+          return new Response(
+            JSON.stringify([
+              {
+                result: {
+                  data: {
+                    json: data
+                  }
+                }
+              }
+            ]),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }
+          );
+        }
+
+        function getInput(init) {
+          try {
+            const body = init && init.body;
+
+            if (!body) return {};
+
+            const parsed =
+              typeof body === "string"
+                ? JSON.parse(body)
+                : body;
+
+            return (
+              parsed?.["0"]?.json ??
+              parsed?.json ??
+              parsed ??
+              {}
+            );
+          } catch {
+            return {};
+          }
+        }
+
+        window.fetch = async function (input, init) {
+          const url =
+            typeof input === "string"
+              ? input
+              : input?.url || "";
+
+          /*
+           * حالة تسجيل الدخول
+           */
+          if (url.includes("/api/trpc/auth.me")) {
+            const { data } =
+              await supabaseClient.auth.getSession();
+
+            const user = data?.session?.user;
+
+            if (!user) {
+              return trpcResponse(null);
+            }
+
+            const role =
+              user.app_metadata?.role === "admin"
+                ? "admin"
+                : "user";
+
+            return trpcResponse({
+              id: user.id,
+              email: user.email,
+              role
+            });
+          }
+
+          /*
+           * تسجيل الخروج
+           */
+          if (url.includes("/api/trpc/auth.logout")) {
+            await supabaseClient.auth.signOut();
+
+            return trpcResponse({
+              success: true
+            });
+          }
+
+          /*
+           * إرسال اقتراح الزائر
+           */
+          if (url.includes("/api/trpc/suggestions.create")) {
+            const payload = getInput(init);
+
+            const message = String(
+              payload.message || ""
+            ).trim();
+
+            if (
+              message.length < 2 ||
+              message.length > 2000
+            ) {
+              return new Response(
+                JSON.stringify({
+                  error: {
+                    message: "invalid message"
+                  }
+                }),
+                {
+                  status: 400,
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                }
+              );
+            }
+
+            const { error } =
+              await supabaseClient
+                .from("suggestions")
+                .insert({
+                  message
+                });
+
+            if (error) {
+              return new Response(
+                JSON.stringify({
+                  error: {
+                    message: error.message
+                  }
+                }),
+                {
+                  status: 400,
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                }
+              );
+            }
+
+            return trpcResponse({
+              success: true
+            });
+          }
+
+          /*
+           * عرض الاقتراحات للمالك
+           */
+          if (url.includes("/api/trpc/suggestions.list")) {
+            const { data } =
+              await supabaseClient.auth.getSession();
+
+            const token =
+              data?.session?.access_token;
+
+            if (!token) {
+              return trpcResponse([]);
+            }
+
+            const response =
+              await originalFetch(
+                window.__HOSNEK_SUPABASE_URL__ +
+                  "/rest/v1/suggestions" +
+                  "?select=id,message,created_at,is_read" +
+                  "&order=created_at.desc",
+                {
+                  headers: {
+                    apikey:
+                      window.__HOSNEK_SUPABASE_KEY__,
+
+                    Authorization:
+                      "Bearer " + token
+                  }
+                }
+              );
+
+            if (!response.ok) {
+              return trpcResponse([]);
+            }
+
+            const rows = await response.json();
+
+            const suggestions = rows.map(
+              (row) => ({
+                id: row.id,
+                message: row.message,
+                createdAt: row.created_at,
+                status:
+                  row.is_read
+                    ? "read"
+                    : "new"
+              })
+            );
+
+            return trpcResponse(
+              suggestions
+            );
+          }
+
+          /*
+           * تحديد الاقتراح كمقروء
+           */
+          if (
+            url.includes(
+              "/api/trpc/suggestions.markRead"
+            )
+          ) {
+            const payload = getInput(init);
+
+            const { data } =
+              await supabaseClient.auth.getSession();
+
+            const token =
+              data?.session?.access_token;
+
+            if (!token || !payload.id) {
+              return trpcResponse({
+                success: false
+              });
+            }
+
+            const response =
+              await originalFetch(
+                window.__HOSNEK_SUPABASE_URL__ +
+                  "/rest/v1/suggestions?id=eq." +
+                  encodeURIComponent(payload.id),
+                {
+                  method: "PATCH",
+
+                  headers: {
+                    apikey:
+                      window.__HOSNEK_SUPABASE_KEY__,
+
+                    Authorization:
+                      "Bearer " + token,
+
+                    "Content-Type":
+                      "application/json",
+
+                    Prefer:
+                      "return=minimal"
+                  },
+
+                  body: JSON.stringify({
+                    is_read: true
+                  })
+                }
+              );
+
+            if (response.ok) {
+              return trpcResponse({
+                success: true
+              });
+            }
+
+            return new Response(
+              JSON.stringify({
+                error: {
+                  message: "update failed"
+                }
+              }),
+              {
+                status: 400,
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                }
+              }
+            );
+          }
+
+          /*
+           * باقي طلبات الموقع تظل كما هي
+           */
+          return originalFetch(
+            input,
+            init
+          );
+        };
+
+        /*
+         * زر تسجيل الدخول في لوحة المالك
+         */
+        document.addEventListener(
+          "click",
+          function (event) {
+            const button =
+              event.target.closest(
+                "button.primary-action"
+              );
+
+            if (!button) return;
+
+            if (
+              button.textContent.trim() !==
+              "تسجيل الدخول"
+            ) {
+              return;
+            }
+
+            if (
+              !window.location.pathname.includes(
+                "owner/suggestions"
+              )
+            ) {
+              return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            window.location.href =
+              new URL(
+                "owner-login.html",
+                window.location.href
+              ).href;
+          },
+          true
+        );
+      })();
+    </script>
+
+    <!-- ملف حصنك الأصلي -->
+    <script
+      type="module"
+      crossorigin
+      src="./assets/index-3-UNteoEJ.js"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      crossorigin
+      href="./assets/index-Bw2ibGDa.css"
+    />
   </head>
+
   <body>
     <div id="root"></div>
   </body>
