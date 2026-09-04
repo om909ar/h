@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#081a15">
+
+  <title>تسجيل دخول المالك | حصنك</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #081a15;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #10251f;
+      border: 1px solid #d5b86a55;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 15px 45px #0008;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 27px;
+    }
+
+    p {
+      color: #bfc8c4;
+      margin: 0 0 25px;
+      line-height: 1.7;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 8px;
+    }
+
+    input {
+      width: 100%;
+      height: 50px;
+      border-radius: 12px;
+      border: 1px solid #ffffff22;
+      background: #081a15;
+      color: white;
+      padding: 0 14px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #d5b86a;
+    }
+
+    button {
+      width: 100%;
+      height: 52px;
+      margin-top: 22px;
+      border: 0;
+      border-radius: 13px;
+      background: #d5b86a;
+      color: #081a15;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    #message {
+      margin-top: 15px;
+      color: #e8cfa0;
+      text-align: center;
+    }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      color: #c8cfcc;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <h1>لوحة مالك حصنك</h1>
+
+    <p>
+      سجّل الدخول للوصول إلى اقتراحات وملاحظات الزوار.
+    </p>
+
+    <form id="loginForm">
+
+      <label for="email">
+        البريد الإلكتروني
+      </label>
+
+      <input
+        id="email"
+        type="email"
+        autocomplete="email"
+        required
+        placeholder="البريد الإلكتروني"
+      >
+
+      <label for="password">
+        كلمة المرور
+      </label>
+
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        required
+        placeholder="كلمة المرور"
+      >
+
+      <button id="loginButton" type="submit">
+        تسجيل الدخول
+      </button>
+
+      <div id="message"></div>
+
+    </form>
+
+    <a class="back" href="./">
+      العودة إلى حصنك
+    </a>
+
+  </div>
+
+<script>
+  const SUPABASE_URL =
+    "https://ggnpqhozioxzctrkmbgd.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_FEWSIWV7TDvQYfZT7rTzwg_oJuQ8t7s";
+
+  const client =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+  const form =
+    document.getElementById("loginForm");
+
+  const button =
+    document.getElementById("loginButton");
+
+  const message =
+    document.getElementById("message");
+
+  form.addEventListener(
+    "submit",
+    async function (event) {
+
+      event.preventDefault();
+
+      button.disabled = true;
+      button.textContent = "جارٍ تسجيل الدخول...";
+      message.textContent = "";
+
+      const email =
+        document
+          .getElementById("email")
+          .value
+          .trim();
+
+      const password =
+        document
+          .getElementById("password")
+          .value;
+
+      const { data, error } =
+        await client.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      if (error) {
+
+        message.textContent =
+          "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+
+        button.disabled = false;
+        button.textContent =
+          "تسجيل الدخول";
+
+        return;
+      }
+
+      const role =
+        data?.user?.app_metadata?.role;
+
+      if (role !== "admin") {
+
+        await client.auth.signOut();
+
+        message.textContent =
+          "هذا الحساب غير مصرح له بالدخول.";
+
+        button.disabled = false;
+        button.textContent =
+          "تسجيل الدخول";
+
+        return;
+      }
+
+      /*
+       * نرجع للموقع مع علامة فتح لوحة المالك
+       */
+      window.location.href =
+        new URL(
+          "./?owner=1",
+          window.location.href
+        ).href;
+    }
+  );
+</script>
+
+</body>
+</html>
