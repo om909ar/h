@@ -236,11 +236,16 @@
       /*
        * نرجع للموقع مع علامة فتح لوحة المالك
        */
-      window.location.href =
-        new URL(
-          "./?owner=1",
-          window.location.href
-        ).href;
+      localStorage.setItem(
+  "hosnek_sb_session",
+  JSON.stringify(data.session)
+);
+
+window.location.href =
+  new URL(
+    "./owner/suggestions",
+    window.location.href
+  ).href;
     }
   );
 </script>
