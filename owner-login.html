@@ -138,6 +138,54 @@
       color: #d6b36a;
       margin-bottom: 15px;
     }
+
+    /* =========================
+       إحصائيات الزيارات
+       ========================= */
+
+    .stats-title {
+      color: #d6b36a;
+      margin: 0 0 18px;
+      font-size: 21px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: #081a15;
+      border: 1px solid #29483f;
+      border-radius: 16px;
+      padding: 18px 10px;
+      text-align: center;
+    }
+
+    .stat-box.total {
+      grid-column: 1 / -1;
+    }
+
+    .stat-label {
+      color: #9bb0aa;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-number {
+      color: #d6b36a;
+      font-size: 29px;
+      font-weight: bold;
+    }
+
+    .refresh-visits {
+      margin-top: 15px;
+      background: #244139;
+      color: white;
+      font-size: 14px;
+      padding: 11px;
+    }
   </style>
 </head>
 
@@ -145,7 +193,10 @@
 
 <div class="container">
 
-  <!-- تسجيل الدخول -->
+  <!-- =========================
+       تسجيل الدخول
+       ========================= -->
+
   <section id="loginSection">
 
     <h1>حصنك</h1>
@@ -185,8 +236,14 @@
   </section>
 
 
-  <!-- لوحة المالك -->
-  <section id="dashboardSection" class="hidden">
+  <!-- =========================
+       لوحة المالك
+       ========================= -->
+
+  <section
+    id="dashboardSection"
+    class="hidden"
+  >
 
     <div class="top">
 
@@ -201,9 +258,105 @@
 
     </div>
 
+
+    <!-- =========================
+         إحصائيات الموقع
+         ========================= -->
+
     <div class="card">
 
-      <div id="count" class="count">
+      <h2 class="stats-title">
+        إحصائيات حصنك
+      </h2>
+
+      <div class="stats-grid">
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            زيارات اليوم
+          </div>
+
+          <div
+            id="visitsToday"
+            class="stat-number"
+          >
+            —
+          </div>
+
+        </div>
+
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            زيارات أمس
+          </div>
+
+          <div
+            id="visitsYesterday"
+            class="stat-number"
+          >
+            —
+          </div>
+
+        </div>
+
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            زيارات هذا الشهر
+          </div>
+
+          <div
+            id="visitsMonth"
+            class="stat-number"
+          >
+            —
+          </div>
+
+        </div>
+
+
+        <div class="stat-box total">
+
+          <div class="stat-label">
+            إجمالي الزيارات
+          </div>
+
+          <div
+            id="visitsTotal"
+            class="stat-number"
+          >
+            —
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="refreshVisits"
+        class="refresh-visits"
+      >
+        تحديث الإحصائيات
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         الاقتراحات
+         ========================= -->
+
+    <div class="card">
+
+      <div
+        id="count"
+        class="count"
+      >
         جاري التحميل...
       </div>
 
@@ -236,48 +389,129 @@ const REFRESH_KEY =
 
 
 const loginSection =
-  document.getElementById("loginSection");
+  document.getElementById(
+    "loginSection"
+  );
+
 
 const dashboardSection =
-  document.getElementById("dashboardSection");
+  document.getElementById(
+    "dashboardSection"
+  );
+
 
 const loginForm =
-  document.getElementById("loginForm");
+  document.getElementById(
+    "loginForm"
+  );
+
 
 const loginMessage =
-  document.getElementById("loginMessage");
+  document.getElementById(
+    "loginMessage"
+  );
+
 
 const suggestionsBox =
-  document.getElementById("suggestionsBox");
+  document.getElementById(
+    "suggestionsBox"
+  );
+
 
 const count =
-  document.getElementById("count");
+  document.getElementById(
+    "count"
+  );
+
 
 const logoutButton =
-  document.getElementById("logoutButton");
+  document.getElementById(
+    "logoutButton"
+  );
 
 
-function showMessage(text, type = "") {
+const visitsToday =
+  document.getElementById(
+    "visitsToday"
+  );
 
-  loginMessage.textContent = text;
+
+const visitsYesterday =
+  document.getElementById(
+    "visitsYesterday"
+  );
+
+
+const visitsMonth =
+  document.getElementById(
+    "visitsMonth"
+  );
+
+
+const visitsTotal =
+  document.getElementById(
+    "visitsTotal"
+  );
+
+
+const refreshVisits =
+  document.getElementById(
+    "refreshVisits"
+  );
+
+
+/* =========================
+   رسائل الدخول
+   ========================= */
+
+function showMessage(
+  text,
+  type = ""
+) {
+
+  loginMessage.textContent =
+    text;
 
   loginMessage.className =
     "message " + type;
+
 }
 
+
+/* =========================
+   حماية النصوص
+   ========================= */
 
 function escapeHtml(value) {
 
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
 }
 
 
-/* تسجيل الدخول */
+/* =========================
+   تسجيل الدخول
+   ========================= */
 
 loginForm.addEventListener(
   "submit",
@@ -285,16 +519,24 @@ loginForm.addEventListener(
 
     event.preventDefault();
 
+
     const email =
-      document.getElementById("email")
+      document
+        .getElementById("email")
         .value
         .trim();
 
+
     const password =
-      document.getElementById("password")
+      document
+        .getElementById("password")
         .value;
 
-    if (!email || !password) {
+
+    if (
+      !email ||
+      !password
+    ) {
 
       showMessage(
         "اكتب البريد الإلكتروني وكلمة المرور.",
@@ -305,7 +547,9 @@ loginForm.addEventListener(
     }
 
 
-    showMessage("جاري تسجيل الدخول...");
+    showMessage(
+      "جاري تسجيل الدخول..."
+    );
 
 
     try {
@@ -318,15 +562,21 @@ loginForm.addEventListener(
             method: "POST",
 
             headers: {
-              "apikey": SUPABASE_KEY,
+              "apikey":
+                SUPABASE_KEY,
+
               "Content-Type":
                 "application/json"
             },
 
-            body: JSON.stringify({
-              email: email,
-              password: password
-            })
+            body:
+              JSON.stringify({
+                email:
+                  email,
+
+                password:
+                  password
+              })
           }
         );
 
@@ -355,7 +605,9 @@ loginForm.addEventListener(
       }
 
 
-      if (!result.access_token) {
+      if (
+        !result.access_token
+      ) {
 
         showMessage(
           "تم الدخول لكن لم يتم استلام جلسة الدخول.",
@@ -366,17 +618,15 @@ loginForm.addEventListener(
       }
 
 
-      /*
-       * نحفظ الجلسة
-       */
-
       localStorage.setItem(
         TOKEN_KEY,
         result.access_token
       );
 
 
-      if (result.refresh_token) {
+      if (
+        result.refresh_token
+      ) {
 
         localStorage.setItem(
           REFRESH_KEY,
@@ -386,10 +636,6 @@ loginForm.addEventListener(
       }
 
 
-      /*
-       * نتحقق من المستخدم
-       */
-
       const userResponse =
         await fetch(
           SUPABASE_URL +
@@ -398,7 +644,9 @@ loginForm.addEventListener(
             method: "GET",
 
             headers: {
-              "apikey": SUPABASE_KEY,
+              "apikey":
+                SUPABASE_KEY,
+
               "Authorization":
                 "Bearer " +
                 result.access_token
@@ -438,16 +686,14 @@ loginForm.addEventListener(
       }
 
 
-      /*
-       * التأكد أن الحساب Admin
-       */
-
       const role =
         user.app_metadata &&
         user.app_metadata.role;
 
 
-      if (role !== "admin") {
+      if (
+        role !== "admin"
+      ) {
 
         localStorage.removeItem(
           TOKEN_KEY
@@ -466,10 +712,6 @@ loginForm.addEventListener(
       }
 
 
-      /*
-       * نجاح
-       */
-
       loginSection.classList.add(
         "hidden"
       );
@@ -478,13 +720,18 @@ loginForm.addEventListener(
         "hidden"
       );
 
+
       await loadSuggestions();
+
+      await loadVisitStats();
 
     }
 
     catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
 
       showMessage(
         "حدث خطأ في الاتصال. حاول مرة أخرى.",
@@ -497,7 +744,299 @@ loginForm.addEventListener(
 );
 
 
-/* تحميل الاقتراحات */
+/* =========================
+   حساب عدد الزيارات
+   ========================= */
+
+async function getVisitCount(
+  startDate,
+  endDate = null
+) {
+
+  const token =
+    localStorage.getItem(
+      TOKEN_KEY
+    );
+
+
+  if (!token) {
+    return 0;
+  }
+
+
+  let url =
+    SUPABASE_URL +
+    "/rest/v1/site_visits" +
+    "?select=id";
+
+
+  if (startDate) {
+
+    url +=
+      "&visited_at=gte." +
+      encodeURIComponent(
+        startDate.toISOString()
+      );
+
+  }
+
+
+  if (endDate) {
+
+    url +=
+      "&visited_at=lt." +
+      encodeURIComponent(
+        endDate.toISOString()
+      );
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "apikey":
+              SUPABASE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              token,
+
+            "Prefer":
+              "count=exact",
+
+            "Range":
+              "0-0"
+          }
+        }
+      );
+
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      console.error(
+        "Visit count error:",
+        errorText
+      );
+
+      return 0;
+    }
+
+
+    const contentRange =
+      response.headers.get(
+        "Content-Range"
+      );
+
+
+    if (contentRange) {
+
+      const total =
+        contentRange.split(
+          "/"
+        )[1];
+
+
+      if (
+        total &&
+        total !== "*"
+      ) {
+
+        return Number(total);
+
+      }
+
+    }
+
+
+    return 0;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Visit count error:",
+      error
+    );
+
+    return 0;
+
+  }
+
+}
+
+
+/* =========================
+   تحميل إحصائيات الزيارات
+   ========================= */
+
+async function loadVisitStats() {
+
+  visitsToday.textContent =
+    "…";
+
+  visitsYesterday.textContent =
+    "…";
+
+  visitsMonth.textContent =
+    "…";
+
+  visitsTotal.textContent =
+    "…";
+
+
+  const now =
+    new Date();
+
+
+  /* بداية اليوم */
+
+  const todayStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+
+  const tomorrowStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+
+
+  /* بداية أمس */
+
+  const yesterdayStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 1
+    );
+
+
+  /* بداية الشهر */
+
+  const monthStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+
+  try {
+
+    const results =
+      await Promise.all([
+
+        getVisitCount(
+          todayStart,
+          tomorrowStart
+        ),
+
+        getVisitCount(
+          yesterdayStart,
+          todayStart
+        ),
+
+        getVisitCount(
+          monthStart,
+          tomorrowStart
+        ),
+
+        getVisitCount(
+          new Date(0),
+          null
+        )
+
+      ]);
+
+
+    visitsToday.textContent =
+      results[0];
+
+
+    visitsYesterday.textContent =
+      results[1];
+
+
+    visitsMonth.textContent =
+      results[2];
+
+
+    visitsTotal.textContent =
+      results[3];
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Visit statistics error:",
+      error
+    );
+
+    visitsToday.textContent =
+      "—";
+
+    visitsYesterday.textContent =
+      "—";
+
+    visitsMonth.textContent =
+      "—";
+
+    visitsTotal.textContent =
+      "—";
+
+  }
+
+}
+
+
+/* =========================
+   زر تحديث الإحصائيات
+   ========================= */
+
+refreshVisits.addEventListener(
+  "click",
+  async function() {
+
+    refreshVisits.disabled =
+      true;
+
+    refreshVisits.textContent =
+      "جاري التحديث...";
+
+
+    await loadVisitStats();
+
+
+    refreshVisits.disabled =
+      false;
+
+    refreshVisits.textContent =
+      "تحديث الإحصائيات";
+
+  }
+);
+
+
+/* =========================
+   تحميل الاقتراحات
+   ========================= */
 
 async function loadSuggestions() {
 
@@ -508,9 +1047,7 @@ async function loadSuggestions() {
 
 
   if (!token) {
-
     return;
-
   }
 
 
@@ -530,9 +1067,12 @@ async function loadSuggestions() {
           method: "GET",
 
           headers: {
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
+
             "Authorization":
-              "Bearer " + token
+              "Bearer " +
+              token
           }
         }
       );
@@ -585,72 +1125,81 @@ async function loadSuggestions() {
 
 
     suggestionsBox.innerHTML =
-      data.map(function(item) {
+      data.map(
+        function(item) {
 
-        const date =
-          new Date(
-            item.created_at
-          ).toLocaleString(
-            "ar-SA",
-            {
-              dateStyle: "medium",
-              timeStyle: "short"
-            }
-          );
+          const date =
+            new Date(
+              item.created_at
+            ).toLocaleString(
+              "ar-SA",
+              {
+                dateStyle:
+                  "medium",
+
+                timeStyle:
+                  "short"
+              }
+            );
 
 
-        return `
-          <div
-            class="suggestion ${
-              item.is_read
-                ? ""
-                : "unread"
-            }"
-          >
-
-            <div>
-              ${escapeHtml(
-                item.message
-              )}
-            </div>
-
-            <div class="date">
-              ${escapeHtml(date)}
-            </div>
-
-            <div class="actions">
-
-              ${
+          return `
+            <div
+              class="suggestion ${
                 item.is_read
                   ? ""
-                  : `
-                    <button
-                      onclick="markAsRead('${item.id}')"
-                    >
-                      تم القراءة
-                    </button>
-                  `
-              }
+                  : "unread"
+              }"
+            >
 
-              <button
-                class="secondary"
-                onclick="deleteSuggestion('${item.id}')"
-              >
-                حذف
-              </button>
+              <div>
+                ${escapeHtml(
+                  item.message
+                )}
+              </div>
+
+              <div class="date">
+                ${escapeHtml(
+                  date
+                )}
+              </div>
+
+              <div class="actions">
+
+                ${
+                  item.is_read
+                    ? ""
+                    : `
+                      <button
+                        onclick="markAsRead('${item.id}')"
+                      >
+                        تم القراءة
+                      </button>
+                    `
+                }
+
+                <button
+                  class="secondary"
+                  onclick="deleteSuggestion('${item.id}')"
+                >
+                  حذف
+                </button>
+
+              </div>
 
             </div>
+          `;
 
-          </div>
-        `;
-
-      }).join("");
+        }
+      ).join("");
 
   }
 
   catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
     suggestionsBox.innerHTML =
       "حدث خطأ أثناء تحميل الاقتراحات.";
@@ -660,9 +1209,13 @@ async function loadSuggestions() {
 }
 
 
-/* تحديد كمقروء */
+/* =========================
+   تحديد كمقروء
+   ========================= */
 
-async function markAsRead(id) {
+async function markAsRead(
+  id
+) {
 
   const token =
     localStorage.getItem(
@@ -670,7 +1223,9 @@ async function markAsRead(id) {
     );
 
 
-  if (!token) return;
+  if (!token) {
+    return;
+  }
 
 
   try {
@@ -679,23 +1234,31 @@ async function markAsRead(id) {
       await fetch(
         SUPABASE_URL +
         "/rest/v1/suggestions?id=eq." +
-        encodeURIComponent(id),
+        encodeURIComponent(
+          id
+        ),
         {
           method: "PATCH",
 
           headers: {
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
+
             "Authorization":
-              "Bearer " + token,
+              "Bearer " +
+              token,
+
             "Content-Type":
               "application/json",
+
             "Prefer":
               "return=minimal"
           },
 
-          body: JSON.stringify({
-            is_read: true
-          })
+          body:
+            JSON.stringify({
+              is_read: true
+            })
         }
       );
 
@@ -710,16 +1273,22 @@ async function markAsRead(id) {
 
   catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
   }
 
 }
 
 
-/* حذف */
+/* =========================
+   حذف الاقتراح
+   ========================= */
 
-async function deleteSuggestion(id) {
+async function deleteSuggestion(
+  id
+) {
 
   if (
     !confirm(
@@ -738,7 +1307,9 @@ async function deleteSuggestion(id) {
     );
 
 
-  if (!token) return;
+  if (!token) {
+    return;
+  }
 
 
   try {
@@ -747,14 +1318,19 @@ async function deleteSuggestion(id) {
       await fetch(
         SUPABASE_URL +
         "/rest/v1/suggestions?id=eq." +
-        encodeURIComponent(id),
+        encodeURIComponent(
+          id
+        ),
         {
           method: "DELETE",
 
           headers: {
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
+
             "Authorization":
-              "Bearer " + token
+              "Bearer " +
+              token
           }
         }
       );
@@ -770,14 +1346,18 @@ async function deleteSuggestion(id) {
 
   catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
   }
 
 }
 
 
-/* تسجيل الخروج */
+/* =========================
+   تسجيل الخروج
+   ========================= */
 
 logoutButton.addEventListener(
   "click",
@@ -800,9 +1380,12 @@ logoutButton.addEventListener(
             method: "POST",
 
             headers: {
-              "apikey": SUPABASE_KEY,
+              "apikey":
+                SUPABASE_KEY,
+
               "Authorization":
-                "Bearer " + token
+                "Bearer " +
+                token
             }
           }
         );
@@ -811,7 +1394,9 @@ logoutButton.addEventListener(
 
       catch (error) {
 
-        console.error(error);
+        console.error(
+          error
+        );
 
       }
 
@@ -835,9 +1420,11 @@ logoutButton.addEventListener(
       "hidden"
     );
 
+
     document.getElementById(
       "password"
     ).value = "";
+
 
     showMessage("");
 
@@ -845,7 +1432,9 @@ logoutButton.addEventListener(
 );
 
 
-/* إذا عنده جلسة محفوظة */
+/* =========================
+   التحقق من الجلسة المحفوظة
+   ========================= */
 
 async function checkSavedLogin() {
 
@@ -856,9 +1445,7 @@ async function checkSavedLogin() {
 
 
   if (!token) {
-
     return;
-
   }
 
 
@@ -872,9 +1459,12 @@ async function checkSavedLogin() {
           method: "GET",
 
           headers: {
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
+
             "Authorization":
-              "Bearer " + token
+              "Bearer " +
+              token
           }
         }
       );
@@ -891,7 +1481,6 @@ async function checkSavedLogin() {
       );
 
       return;
-
     }
 
 
@@ -901,7 +1490,8 @@ async function checkSavedLogin() {
 
     if (
       user.app_metadata &&
-      user.app_metadata.role === "admin"
+      user.app_metadata.role ===
+        "admin"
     ) {
 
       loginSection.classList.add(
@@ -912,7 +1502,10 @@ async function checkSavedLogin() {
         "hidden"
       );
 
+
       await loadSuggestions();
+
+      await loadVisitStats();
 
     }
 
@@ -920,13 +1513,16 @@ async function checkSavedLogin() {
 
   catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
   }
 
 }
 
 
+/* تشغيل التحقق */
 checkSavedLogin();
 
 </script>
