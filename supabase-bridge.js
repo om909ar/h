@@ -61,6 +61,40 @@
       }
     );
   }
+  
+    /* =========================
+     تسجيل زيارة الموقع
+     ========================= */
+
+  async function recordVisit() {
+    try {
+      /* لا نحسب دخول المالك كزيارة */
+      if (
+        new URLSearchParams(location.search).get("owner") === "1"
+      ) {
+        return;
+      }
+
+      await sbFetch(
+        "/rest/v1/site_visits",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({})
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Visit tracking error:",
+        error
+      );
+    }
+  }
+
+  recordVisit();
 
   window.fetch = async function (input, init) {
     const url =
