@@ -290,7 +290,7 @@
      عرض لوحة المالك
      ========================= */
 
-  async function loadDashboard() {
+  async function loadDashboard(currentSession = null) {
 
     loginBox.classList.add("hidden");
     dashboard.classList.remove("hidden");
@@ -299,27 +299,23 @@
       '<div class="card loading">جارٍ تحميل الاقتراحات...</div>';
 
 
-    const {
-      data: sessionData
-    } =
-      await supabase.auth.getSession();
-
-
     const session =
-      sessionData?.session;
+      currentSession ||
+      (await supabase.auth.getSession()).data?.session;
 
 
     if (!session) {
+
       showLogin();
+
       return;
     }
 
 
-    const user =
-      session.user;
-
-
-
+    /*
+     * نستخدم الجلسة الحالية مباشرة
+     * بدل إعادة تسجيل الدخول
+     */
 
     const {
       data,
@@ -343,13 +339,19 @@
       suggestionsBox.innerHTML =
         '<div class="card">تعذر تحميل الاقتراحات.</div>';
 
-      console.error(error);
+      console.error(
+        "Supabase error:",
+        error
+      );
 
       return;
     }
 
 
-    if (!data || data.length === 0) {
+    if (
+      !data ||
+      data.length === 0
+    ) {
 
       suggestionsBox.innerHTML =
         '<div class="card empty">لا توجد اقتراحات حتى الآن.</div>';
@@ -468,6 +470,11 @@
 
       if (error) {
 
+        console.error(
+          "Login error:",
+          error
+        );
+
         message.textContent =
           "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
 
@@ -480,9 +487,14 @@
       }
 
 
+      /*
+       * تم تسجيل الدخول بنجاح.
+       * نستخدم نفس session مباشرة.
+       */
 
-
-      await loadDashboard();
+      await loadDashboard(
+        data.session
+      );
 
     }
   );
@@ -514,6 +526,8 @@
         alert(
           "تعذر تحديث الاقتراح."
         );
+
+        console.error(error);
 
         return;
       }
@@ -557,6 +571,8 @@
           "تعذر حذف الاقتراح."
         );
 
+        console.error(error);
+
         return;
       }
 
@@ -592,6 +608,8 @@
     loginButton.textContent =
       "تسجيل الدخول";
 
+    message.textContent = "";
+
   }
 
 
@@ -621,7 +639,9 @@
 
     if (data?.session) {
 
-      await loadDashboard();
+      await loadDashboard(
+        data.session
+      );
 
     }
 
